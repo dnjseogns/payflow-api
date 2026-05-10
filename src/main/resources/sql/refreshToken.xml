@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dhwon.payflow_api.api.auth.mapper.RefreshTokenMapper">
+
+    <update id="mergeRefreshToken">
+        MERGE INTO MST_REFRESH_TOKEN T
+        USING (SELECT #{dto.userId} AS USER_ID FROM DUAL) S
+        ON (T.USER_ID = S.USER_ID)
+        WHEN MATCHED THEN
+        UPDATE SET
+        REFRESH_TOKEN = #{dto.refreshToken},
+        EXPIRE_DATE = #{dto.expireDate},
+        UPDATED_AT = SYSDATE,
+        UPDATED_BY = #{dto.userId}
+        WHEN NOT MATCHED THEN
+        INSERT (
+        USER_ID, REFRESH_TOKEN, EXPIRE_DATE, CREATED_AT, CREATED_BY
+        ) VALUES (
+        #{dto.userId}, #{dto.refreshToken}, #{dto.expireDate}, SYSDATE, #{dto.userId}
+        )
+    </update>
+
+    <select id="selectRefreshToken"
+            resultType="com.dhwon.payflow_api.api.auth.dto.RefreshTokenDto">
+
+        SELECT
+        USER_ID,
+        REFRESH_TOKEN,
+        EXPIRE_DATE
+        FROM MST_REFRESH_TOKEN
+        WHERE USER_ID = #{loginUserId}
+
+    </select>
+
+    <delete id="deleteRefreshToken">
+
+        DELETE
+        FROM MST_REFRESH_TOKEN
+        WHERE USER_ID = #{loginUserId}
+
+    </delete>
+
+</mapper>

@@ -1,0 +1,90 @@
+<!--TRACE < DEBUG < INFO < WARN < ERROR-->
+<configuration>
+    <springProperty name="LOG_FILE_PATH" source="file.log-file-path"/>
+
+    <!--콘솔(레벨상관x)-->
+    <appender name="LOCAL_CONSOLE_POLICY" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} [%-5level] [%thread] [%logger{36}] - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <!--debugging level 파일-->
+    <appender name="LOCAL_SQL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter" >
+            <level>DEBUG</level>
+        </filter>
+        <file>${LOG_FILE_PATH}/payflow-api-sql.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%-5level] [%thread] [%logger{36}] - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE_PATH}/old_sql/%d{yyyy_MM_dd}_%i.payflow-api-sql.log</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+    <!--info level 파일-->
+    <appender name="INFO_FILE_POLICY" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter" >
+            <level>INFO</level>
+        </filter>
+        <file>${LOG_FILE_PATH}/payflow-api-info.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%-5level] [%thread] [%logger{36}] - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE_PATH}/old_info/%d{yyyy_MM_dd}_%i.payflow-api-info.log</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+    <!--error level 파일-->
+    <appender name="ERROR_FILE_POLICY" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter" >
+            <level>ERROR</level>
+        </filter>
+        <file>${LOG_FILE_PATH}/payflow-api-error.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%-5level] [%thread] [%logger{36}] - %msg%n%ex</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE_PATH}/old_error/%d{yyyy_MM_dd}_%i.payflow-api-error.log</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <springProfile name="local">
+        <root level="INFO">
+            <appender-ref ref="LOCAL_CONSOLE_POLICY"/>
+            <appender-ref ref="INFO_FILE_POLICY"/>
+            <!-- <appender-ref ref="ERROR_FILE_POLICY"/> 주석사유:개발시 info+error 한번에 보는 게 편함 -->
+        </root>
+        <logger name="com.dhwon.payflow_api.interceptor" level="DEBUG" additivity="false">
+            <!--mybatisLogInterceptor log.debug()를 로깅-->
+            <appender-ref ref="LOCAL_CONSOLE_POLICY"/>
+            <appender-ref ref="LOCAL_SQL"/>
+        </logger>
+    </springProfile>
+    <springProfile name="dev">
+        <root level="INFO">
+            <appender-ref ref="LOCAL_CONSOLE_POLICY"/>
+            <appender-ref ref="INFO_FILE_POLICY"/>
+            <!-- <appender-ref ref="ERROR_FILE_POLICY"/> 주석사유:개발시 info+error 한번에 보는 게 편함 -->
+        </root>
+        <logger name="com.dhwon.payflow_api.interceptor" level="DEBUG" additivity="false">
+            <!--mybatisLogInterceptor log.debug()를 로깅-->
+            <appender-ref ref="LOCAL_CONSOLE_POLICY"/>
+            <appender-ref ref="LOCAL_SQL"/>
+        </logger>
+    </springProfile>
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="INFO_FILE_POLICY"/>
+            <appender-ref ref="ERROR_FILE_POLICY"/>
+        </root>
+    </springProfile>
+</configuration>

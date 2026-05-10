@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: payflow-api
+  datasource:
+    url: jdbc:oracle:thin:@//localhost:1521/orclpdb
+    username: hr
+    password: 1234
+    driver-class-name: oracle.jdbc.OracleDriver
+
+#주석처리 사유 :springboot에서 자동으로 찾음
+#logging:
+#config: classpath:logback-spring.xml
+
+file:
+  log-file-path: C:/zdev/payflow/logs
+  #pdf-save-path: C:/zdev/payflow/pdf
+
+jwt:
+  secret: mySecretKeymySecretKeymySecretKey4243
+#  expiration: 120000 #access token 120초(테스트)
+  expiration: 3600000 #1시간
+  refresh-expiration: 604800000 #refresh token 7일

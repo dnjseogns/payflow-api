@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dhwon.payflow_api.api.user.mapper.UserMapper">
+
+    <select id="selectUserList"
+            resultType="com.dhwon.payflow_api.api.user.dto.UserResponseDto">
+        SELECT
+        USER_ID,
+        USER_PW,
+        USER_NAME,
+        ROLE_CODE,
+        USE_YN,
+        LAST_LOGIN_DATE,
+        CREATED_AT,
+        CREATED_BY,
+        UPDATED_AT,
+        UPDATED_BY
+        FROM MST_USER
+        ORDER BY CREATED_AT DESC
+    </select>
+
+    <select id="selectUserDetail"
+            resultType="com.dhwon.payflow_api.api.user.dto.UserResponseDto">
+        SELECT
+        USER_ID,
+        USER_PW,
+        USER_NAME,
+        ROLE_CODE,
+        USE_YN,
+        LAST_LOGIN_DATE,
+        CREATED_AT,
+        CREATED_BY,
+        UPDATED_AT,
+        UPDATED_BY
+        FROM MST_USER
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <insert id="insertUser">
+        INSERT INTO MST_USER
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="dto.userId != null">USER_ID,</if>
+            <if test="dto.userPw != null">USER_PW,</if>
+            <if test="dto.userName != null">USER_NAME,</if>
+            <if test="dto.roleCode != null">ROLE_CODE,</if>
+            <if test="dto.useYn != null">USE_YN,</if>
+            CREATED_AT,
+            CREATED_BY
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="dto.userId != null">#{dto.userId},</if>
+            <if test="dto.userPw != null">#{dto.userPw},</if>
+            <if test="dto.userName != null">#{dto.userName},</if>
+            <if test="dto.roleCode != null">#{dto.roleCode},</if>
+            <if test="dto.useYn != null">#{dto.useYn},</if>
+            SYSDATE,
+            #{loginUserId}
+        </trim>
+    </insert>
+
+    <update id="updateUser">
+        UPDATE MST_USER
+        <set>
+            <if test="dto.userPw != null">USER_PW = #{dto.userPw},</if>
+            <if test="dto.userName != null">USER_NAME = #{dto.userName},</if>
+            <if test="dto.roleCode != null">ROLE_CODE = #{dto.roleCode},</if>
+            <if test="dto.useYn != null">USE_YN = #{dto.useYn},</if>
+            UPDATED_AT = SYSDATE,
+            UPDATED_BY = #{loginUserId}
+        </set>
+        WHERE USER_ID = #{userId}
+    </update>
+
+    <delete id="deleteUser">
+        DELETE FROM MST_USER
+        WHERE USER_ID = #{userId}
+    </delete>
+
+</mapper>

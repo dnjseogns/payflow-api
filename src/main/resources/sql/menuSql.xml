@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dhwon.payflow_api.api.menu.mapper.MenuMapper">
+
+    <select id="selectMenuList"
+            resultType="com.dhwon.payflow_api.api.menu.dto.MenuResponseDto">
+        SELECT
+        MENU_ID,
+        PARENT_MENU_ID,
+        MENU_NAME,
+        MENU_URL,
+        MENU_LEVEL,
+        SORT_ORDER,
+        ICON_NAME,
+        USE_YN,
+        CREATED_AT,
+        CREATED_BY,
+        UPDATED_AT,
+        UPDATED_BY
+        FROM MST_MENU
+        ORDER BY SORT_ORDER ASC, MENU_ID ASC
+    </select>
+
+    <select id="selectMenuDetail"
+            resultType="com.dhwon.payflow_api.api.menu.dto.MenuResponseDto">
+        SELECT
+        MENU_ID,
+        PARENT_MENU_ID,
+        MENU_NAME,
+        MENU_URL,
+        MENU_LEVEL,
+        SORT_ORDER,
+        ICON_NAME,
+        USE_YN,
+        CREATED_AT,
+        CREATED_BY,
+        UPDATED_AT,
+        UPDATED_BY
+        FROM MST_MENU
+        WHERE MENU_ID = #{menuId}
+    </select>
+
+    <insert id="insertMenu">
+        INSERT INTO MST_MENU
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            MENU_ID,
+            <if test="dto.parentMenuId != null">PARENT_MENU_ID,</if>
+            <if test="dto.menuName != null">MENU_NAME,</if>
+            <if test="dto.menuUrl != null">MENU_URL,</if>
+            <if test="dto.menuLevel != null">MENU_LEVEL,</if>
+            <if test="dto.sortOrder != null">SORT_ORDER,</if>
+            <if test="dto.iconName != null">ICON_NAME,</if>
+            <if test="dto.useYn != null">USE_YN,</if>
+            CREATED_AT,
+            CREATED_BY
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            #{dto.menuId},
+            <if test="dto.parentMenuId != null">#{dto.parentMenuId},</if>
+            <if test="dto.menuName != null">#{dto.menuName},</if>
+            <if test="dto.menuUrl != null">#{dto.menuUrl},</if>
+            <if test="dto.menuLevel != null">#{dto.menuLevel},</if>
+            <if test="dto.sortOrder != null">#{dto.sortOrder},</if>
+            <if test="dto.iconName != null">#{dto.iconName},</if>
+            <if test="dto.useYn != null">#{dto.useYn},</if>
+            SYSDATE,
+            #{loginUserId}
+        </trim>
+    </insert>
+
+    <update id="updateMenu">
+        UPDATE MST_MENU
+        <set>
+            <if test="dto.parentMenuId != null">PARENT_MENU_ID = #{dto.parentMenuId},</if>
+            <if test="dto.menuName != null">MENU_NAME = #{dto.menuName},</if>
+            <if test="dto.menuUrl != null">MENU_URL = #{dto.menuUrl},</if>
+            <if test="dto.menuLevel != null">MENU_LEVEL = #{dto.menuLevel},</if>
+            <if test="dto.sortOrder != null">SORT_ORDER = #{dto.sortOrder},</if>
+            <if test="dto.iconName != null">ICON_NAME = #{dto.iconName},</if>
+            <if test="dto.useYn != null">USE_YN = #{dto.useYn},</if>
+            UPDATED_AT = SYSDATE,
+            UPDATED_BY = #{loginUserId}
+        </set>
+        WHERE MENU_ID = #{menuId}
+    </update>
+
+    <delete id="deleteMenu">
+        DELETE FROM MST_MENU
+        WHERE MENU_ID = #{menuId}
+    </delete>
+
+</mapper>

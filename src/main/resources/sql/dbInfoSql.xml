@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dhwon.payflow_api.api.dbInfo.mapper.DbInfoMapper">
+
+    <select id="selectSysdate" resultType="string">
+        SELECT TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS') FROM DUAL
+    </select>
+
+    <select id="selectDbVersion" resultType="string">
+        SELECT BANNER
+        FROM V$VERSION
+        WHERE ROWNUM = 1
+    </select>
+
+    <select id="selectDbUser" resultType="string">
+        SELECT USER FROM DUAL
+    </select>
+
+</mapper>

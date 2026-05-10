@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dhwon.payflow_api.api.roleMenu.mapper.RoleMenuMapper">
+
+    <select id="selectRoleMenuList"
+            resultType="com.dhwon.payflow_api.api.roleMenu.dto.RoleMenuResponseDto">
+        SELECT
+        ROLE_CODE,
+        MENU_ID,
+        READ_YN,
+        CREATE_YN,
+        UPDATE_YN,
+        DELETE_YN,
+        EXCEL_YN,
+        CREATED_AT,
+        CREATED_BY,
+        UPDATED_AT,
+        UPDATED_BY
+        FROM MAP_ROLE_MENU
+        ORDER BY ROLE_CODE, MENU_ID
+    </select>
+
+    <select id="selectRoleMenuDetail"
+            resultType="com.dhwon.payflow_api.api.roleMenu.dto.RoleMenuResponseDto">
+        SELECT
+        ROLE_CODE,
+        MENU_ID,
+        READ_YN,
+        CREATE_YN,
+        UPDATE_YN,
+        DELETE_YN,
+        EXCEL_YN,
+        CREATED_AT,
+        CREATED_BY,
+        UPDATED_AT,
+        UPDATED_BY
+        FROM MAP_ROLE_MENU
+        WHERE ROLE_CODE = #{roleCode}
+        AND MENU_ID = #{menuId}
+    </select>
+
+    <insert id="insertRoleMenu">
+        INSERT INTO MAP_ROLE_MENU
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="dto.roleCode != null">ROLE_CODE,</if>
+            <if test="dto.menuId != null">MENU_ID,</if>
+            <if test="dto.readYn != null">READ_YN,</if>
+            <if test="dto.createYn != null">CREATE_YN,</if>
+            <if test="dto.updateYn != null">UPDATE_YN,</if>
+            <if test="dto.deleteYn != null">DELETE_YN,</if>
+            <if test="dto.excelYn != null">EXCEL_YN,</if>
+            CREATED_AT,
+            CREATED_BY
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="dto.roleCode != null">#{dto.roleCode},</if>
+            <if test="dto.menuId != null">#{dto.menuId},</if>
+            <if test="dto.readYn != null">#{dto.readYn},</if>
+            <if test="dto.createYn != null">#{dto.createYn},</if>
+            <if test="dto.updateYn != null">#{dto.updateYn},</if>
+            <if test="dto.deleteYn != null">#{dto.deleteYn},</if>
+            <if test="dto.excelYn != null">#{dto.excelYn},</if>
+            SYSDATE,
+            #{loginUserId}
+        </trim>
+    </insert>
+
+    <update id="updateRoleMenu">
+        UPDATE MAP_ROLE_MENU
+        <set>
+            <if test="dto.readYn != null">READ_YN = #{dto.readYn},</if>
+            <if test="dto.createYn != null">CREATE_YN = #{dto.createYn},</if>
+            <if test="dto.updateYn != null">UPDATE_YN = #{dto.updateYn},</if>
+            <if test="dto.deleteYn != null">DELETE_YN = #{dto.deleteYn},</if>
+            <if test="dto.excelYn != null">EXCEL_YN = #{dto.excelYn},</if>
+            UPDATED_AT = SYSDATE,
+            UPDATED_BY = #{loginUserId}
+        </set>
+        WHERE ROLE_CODE = #{roleCode}
+        AND MENU_ID = #{menuId}
+    </update>
+
+    <delete id="deleteRoleMenu">
+        DELETE FROM MAP_ROLE_MENU
+        WHERE ROLE_CODE = #{roleCode}
+        AND MENU_ID = #{menuId}
+    </delete>
+
+</mapper>
