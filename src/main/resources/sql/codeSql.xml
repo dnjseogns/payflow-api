@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dhwon.payflow_api.api.code.mapper.CodeMapper">
+
+    <select id="selectCodeList"
+            resultType="com.dhwon.payflow_api.api.code.dto.CodeSelectResponseDto">
+
+        SELECT
+        CG.CODE_GROUP,
+        CG.GROUP_NAME,
+        CG.DESCRIPTION AS GROUP_DESCRIPTION,
+
+        C.CODE,
+        C.CODE_NAME,
+        C.DESCRIPTION AS CODE_DESCRIPTION,
+
+        C.SORT_ORDER
+
+        FROM MST_CODE_GROUP CG
+        INNER JOIN MST_CODE C
+        ON C.CODE_GROUP = CG.CODE_GROUP
+
+        WHERE 1=1
+        AND CG.USE_YN = 'Y'
+        AND C.USE_YN = 'Y'
+
+        ORDER BY
+        CG.CODE_GROUP,
+        C.SORT_ORDER,
+        C.CODE
+
+    </select>
+
+</mapper>

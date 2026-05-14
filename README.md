@@ -74,6 +74,26 @@ src
 • authInterceptor에서 access token 인증 후 성공 -> ContextUser정보 저장 -> Controller...
 • authInterceptor에서 access token 인증 후 실패 -> 예외처리
 
-6. paging
+7. paging
 공통요청변수 : {page, size}
 공통응답변수 : data{list, totalCount}
+
+8. mybatis resultType 버그
+항상 잘 세팅되어있는 프로젝트에 개발/유지보수 했어서 몰랐는데, 세팅 어렵다...
+해결방법1. resultType -> resultMap으로 수정
+
+<mapper namespace="com.dhwon.payflow_api.api.payment.mapper.PaymentMapper">
+    <select id="selectPaymentList"
+            resultType="com.dhwon.payflow_api.api.payment.dto.PaymentSelectResponseDto"
+    >
+        SELECT
+        P.MERCHANT_ID,
+        P.BASE_DATE,
+        P.TX_SEQ,
+        P.MERCHANT_ORDER_ID,
+        P.MERCHANT_ORDER_DATE,
+        P.PAY_METHOD,
+        (SELECT CODE_NAME FROM MST_CODE WHERE CODE = P.PAY_METHOD) AS PAY_METHOD_NAME,
+        P.AMOUNT,
+        P.PAY_STATUS,
+        (SELECT CODE_NAME FROM MST_CODE WHERE CODE = P.PAY_STATUS) AS PAY_STATUS_NAME,

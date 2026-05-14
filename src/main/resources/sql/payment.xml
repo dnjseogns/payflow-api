@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dhwon.payflow_api.api.payment.mapper.PaymentMapper">
+    <select id="selectPaymentList"
+            resultType="com.dhwon.payflow_api.api.payment.dto.PaymentSelectResponseDto"
+    >
+        SELECT
+        P.MERCHANT_ID,
+        P.BASE_DATE,
+        P.TX_SEQ,
+        P.MERCHANT_ORDER_ID,
+        P.MERCHANT_ORDER_DATE,
+        P.PAY_METHOD,
+        (SELECT CODE_NAME FROM MST_CODE WHERE CODE = P.PAY_METHOD) AS PAY_METHOD_NAME,
+        P.AMOUNT,
+        P.PAY_STATUS,
+        (SELECT CODE_NAME FROM MST_CODE WHERE CODE = P.PAY_STATUS) AS PAY_STATUS_NAME,
+        P.CREATED_AT
+        FROM PAYMENT P
+        WHERE 1=1
+
+        <if test="dto.merchantId != null and dto.merchantId != ''">
+            AND P.MERCHANT_ID = #{dto.merchantId}
+        </if>
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND P.BASE_DATE <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND P.BASE_DATE <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+        <if test="dto.payMethod != null and dto.payMethod != ''">
+            AND P.PAY_METHOD = #{dto.payMethod}
+        </if>
+
+        <if test="dto.payStatus != null and dto.payStatus != ''">
+            AND P.PAY_STATUS = #{dto.payStatus}
+        </if>
+
+        ORDER BY P.MERCHANT_ID, P.BASE_DATE, P.TX_SEQ
+        OFFSET #{dto.offset} ROWS
+        FETCH NEXT #{dto.size} ROWS ONLY
+
+    </select>
+
+    <select id="selectPaymentListCount"
+            resultType="int">
+
+        SELECT COUNT(*) CNT
+        FROM PAYMENT P
+        WHERE 1=1
+
+        <if test="dto.merchantId != null and dto.merchantId != ''">
+            AND P.MERCHANT_ID = #{dto.merchantId}
+        </if>
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND P.BASE_DATE <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND P.BASE_DATE <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+        <if test="dto.payMethod != null and dto.payMethod != ''">
+            AND P.PAY_METHOD = #{dto.payMethod}
+        </if>
+
+        <if test="dto.payStatus != null and dto.payStatus != ''">
+            AND P.PAY_STATUS = #{dto.payStatus}
+        </if>
+
+    </select>
+
+</mapper>
