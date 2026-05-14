@@ -9,6 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ReissueRequestDto {
+
+public class AuthResultDto {
     private String userId;
+    private String userPw;
+    private String userName;
+    private String roleCode;
 }

@@ -2,6 +2,7 @@ package com.dhwon.payflow_api.api.menu.controller;
 
 import com.dhwon.payflow_api.api.menu.dto.MenuRequestDto;
 import com.dhwon.payflow_api.api.menu.dto.MenuResponseDto;
+import com.dhwon.payflow_api.api.menu.dto.MenuTreeResponseDto;
 import com.dhwon.payflow_api.api.menu.service.MenuService;
 import com.dhwon.payflow_api.cmm.auth.context.UserContext;
 import com.dhwon.payflow_api.response.annotation.UseCommonResponse;
@@ -47,4 +48,15 @@ public class MenuController {
     public int deleteMenu(@PathVariable("menuId") Long menuId) {
         return menuService.deleteMenu(menuId);
     }
+
+
+    @GetMapping("/my")
+    @UseCommonResponse
+    public List<MenuTreeResponseDto> selectMyMenuTree() {
+
+        String userId = UserContext.get().getUserId();
+
+        return menuService.selectMyMenuTree(userId);
+    }
+
 }

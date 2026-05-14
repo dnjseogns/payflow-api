@@ -93,4 +93,41 @@
         WHERE MENU_ID = #{menuId}
     </delete>
 
+
+    <select id="selectMyMenuList"
+            resultType="com.dhwon.payflow_api.api.menu.dto.MenuTreeResponseDto">
+
+        SELECT
+        M.MENU_ID,
+        M.PARENT_MENU_ID,
+        M.MENU_NAME,
+        M.MENU_URL,
+        M.MENU_LEVEL,
+        M.SORT_ORDER,
+        M.ICON_NAME,
+
+        RM.READ_YN,
+        RM.CREATE_YN,
+        RM.UPDATE_YN,
+        RM.DELETE_YN
+
+        FROM MST_USER U
+
+        JOIN MAP_ROLE_MENU RM
+        ON U.ROLE_CODE = RM.ROLE_CODE
+
+        JOIN MST_MENU M
+        ON RM.MENU_ID = M.MENU_ID
+
+        WHERE U.USER_ID = #{userId}
+        AND U.USE_YN = 'Y'
+        AND M.USE_YN = 'Y'
+        AND RM.READ_YN = 'Y'
+
+        ORDER BY
+        M.MENU_LEVEL,
+        M.PARENT_MENU_ID,
+        M.SORT_ORDER
+
+    </select>
 </mapper>

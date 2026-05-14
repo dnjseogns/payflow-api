@@ -18,5 +18,5 @@ file:
 jwt:
   secret: mySecretKeymySecretKeymySecretKey4243
 #  expiration: 120000 #access token 120초(테스트)
-  expiration: 3600000 #1시간
+  expiration: 36000000 #10시간
   refresh-expiration: 604800000 #refresh token 7일

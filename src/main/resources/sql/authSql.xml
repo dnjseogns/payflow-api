@@ -8,15 +8,15 @@
 
     <select id="login"
             parameterType="com.dhwon.payflow_api.api.auth.dto.AuthRequestDto"
-            resultType="com.dhwon.payflow_api.api.auth.dto.AuthResponseDto">
+            resultType="com.dhwon.payflow_api.api.auth.dto.AuthResultDto">
 
         SELECT
         USER_ID
+        , USER_PW
         , USER_NAME
         , ROLE_CODE
         FROM MST_USER
         WHERE USER_ID = #{dto.userId}
-        AND USER_PW = #{dto.userPw}
         AND USE_YN = 'Y'
 
     </select>

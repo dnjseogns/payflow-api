@@ -2,6 +2,7 @@ package com.dhwon.payflow_api.api.menu.mapper;
 
 import com.dhwon.payflow_api.api.menu.dto.MenuRequestDto;
 import com.dhwon.payflow_api.api.menu.dto.MenuResponseDto;
+import com.dhwon.payflow_api.api.menu.dto.MenuTreeResponseDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -22,4 +23,8 @@ public interface MenuMapper {
                    @Param("loginUserId") String loginUserId);
 
     int deleteMenu(@Param("menuId") Long menuId);
+
+    List<MenuTreeResponseDto> selectMyMenuList(
+            @Param("userId") String userId
+    );
 }

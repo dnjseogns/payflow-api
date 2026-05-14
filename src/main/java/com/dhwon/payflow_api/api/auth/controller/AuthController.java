@@ -6,6 +6,8 @@ import com.dhwon.payflow_api.api.auth.dto.ReissueRequestDto;
 import com.dhwon.payflow_api.api.auth.dto.ReissueResponseDto;
 import com.dhwon.payflow_api.api.auth.service.AuthService;
 import com.dhwon.payflow_api.response.annotation.UseCommonResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,13 +23,16 @@ public class AuthController {
 
     @PostMapping("/login")
     @UseCommonResponse
-    public AuthResponseDto login(@Valid @RequestBody AuthRequestDto authRequestDto){
-        return authService.login(authRequestDto);
+    public AuthResponseDto login(@Valid @RequestBody AuthRequestDto authRequestDto,
+                                 HttpServletResponse response){
+        return authService.login(authRequestDto, response);
     }
 
     @PostMapping("/reissue")
     @UseCommonResponse
-    public ReissueResponseDto reissue(@RequestBody ReissueRequestDto dto) {
-        return authService.reissue(dto);
+    public ReissueResponseDto reissue(@RequestBody ReissueRequestDto dto,
+                                      HttpServletRequest request,
+                                      HttpServletResponse response) {
+        return authService.reissue(dto, request, response);
     }
 }

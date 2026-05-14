@@ -9,7 +9,6 @@
             resultType="com.dhwon.payflow_api.api.user.dto.UserResponseDto">
         SELECT
         USER_ID,
-        USER_PW,
         USER_NAME,
         ROLE_CODE,
         USE_YN,
@@ -19,14 +18,29 @@
         UPDATED_AT,
         UPDATED_BY
         FROM MST_USER
+        WHERE 1=1
+        <if test="dto.userId != null and dto.userId != ''">
+            AND USER_ID = #{dto.userId}
+        </if>
         ORDER BY CREATED_AT DESC
+        OFFSET #{dto.offset} ROWS
+        FETCH NEXT #{dto.size} ROWS ONLY
+    </select>
+
+    <select id="selectUserListCount"
+            resultType="int">
+        SELECT COUNT(*) CNT
+        FROM MST_USER
+        WHERE 1=1
+        <if test="dto.userId != null and dto.userId != ''">
+            AND USER_ID = #{dto.userId}
+        </if>
     </select>
 
     <select id="selectUserDetail"
             resultType="com.dhwon.payflow_api.api.user.dto.UserResponseDto">
         SELECT
         USER_ID,
-        USER_PW,
         USER_NAME,
         ROLE_CODE,
         USE_YN,

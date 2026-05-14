@@ -2,8 +2,10 @@ package com.dhwon.payflow_api.api.user.controller;
 
 import com.dhwon.payflow_api.api.user.dto.UserRequestDto;
 import com.dhwon.payflow_api.api.user.dto.UserResponseDto;
+import com.dhwon.payflow_api.api.user.dto.UserSelectRequestDto;
 import com.dhwon.payflow_api.api.user.service.UserService;
 import com.dhwon.payflow_api.cmm.auth.context.UserContext;
+import com.dhwon.payflow_api.cmm.paging.PagingResponseDto;
 import com.dhwon.payflow_api.response.annotation.UseCommonResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +19,13 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping
+    @PostMapping("select")
     @UseCommonResponse
-    public List<UserResponseDto> selectUserList() {
-        return userService.selectUserList();
+    public PagingResponseDto<UserResponseDto> selectUserList(@RequestBody UserSelectRequestDto userSelectRequestDto) {
+        return userService.selectUserList(userSelectRequestDto);
     }
 
-    @GetMapping("/{userId}")
+    @PostMapping("/{userId}")
     @UseCommonResponse
     public UserResponseDto selectUserDetail(
             @PathVariable("userId") String userId

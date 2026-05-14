@@ -73,3 +73,7 @@ src
 (4) /api/** 요청 시
 • authInterceptor에서 access token 인증 후 성공 -> ContextUser정보 저장 -> Controller...
 • authInterceptor에서 access token 인증 후 실패 -> 예외처리
+
+6. paging
+공통요청변수 : {page, size}
+공통응답변수 : data{list, totalCount}
