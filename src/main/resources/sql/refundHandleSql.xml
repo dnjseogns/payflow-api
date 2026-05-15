@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dhwon.payflow_api.api.refundHandle.mapper.RefundHandleMapper">
+
+    <!-- =====================================================
+         환불 처리 목록 조회
+    ====================================================== -->
+
+    <select id="selectRefundHandleList"
+            resultType="com.dhwon.payflow_api.api.refundHandle.dto.RefundHandleSelectResponseDto">
+
+        SELECT
+        R.BASE_DATE,
+        R.MERCHANT_ID,
+        R.REFUND_SEQ,
+        R.REFUND_AMOUNT,
+        R.REFUND_COUNT,
+        R.REFUND_CODE,
+        R.REFUND_MESSAGE,
+        R.CREATED_AT,
+        R.CREATED_BY,
+        R.UPDATED_AT,
+        R.UPDATED_BY
+        FROM REFUND_HANDLE R
+        WHERE 1=1
+
+        <if test="dto.merchantId != null and dto.merchantId != ''">
+            AND R.MERCHANT_ID = #{dto.merchantId}
+        </if>
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND R.BASE_DATE <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND R.BASE_DATE <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+        ORDER BY
+        R.BASE_DATE DESC,
+        R.MERCHANT_ID,
+        R.REFUND_SEQ
+
+        OFFSET #{dto.offset} ROWS
+        FETCH NEXT #{dto.size} ROWS ONLY
+
+    </select>
+
+    <!-- =====================================================
+         환불 처리 목록 COUNT
+    ====================================================== -->
+
+    <select id="selectRefundHandleListCount"
+            resultType="int">
+
+        SELECT COUNT(*) CNT
+        FROM REFUND_HANDLE R
+        WHERE 1=1
+
+        <if test="dto.merchantId != null and dto.merchantId != ''">
+            AND R.MERCHANT_ID = #{dto.merchantId}
+        </if>
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND R.BASE_DATE <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND R.BASE_DATE <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+    </select>
+
+</mapper>

@@ -25,6 +25,7 @@ public class MenuTreeResponseDto {
     private String createYn;
     private String updateYn;
     private String deleteYn;
+    private String excelYn;
 
     private List<MenuTreeResponseDto> children = new ArrayList<>();
 }

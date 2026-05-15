@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dhwon.payflow_api.api.paymentCancel.mapper.PaymentCancelMapper">
+
+    <!-- =====================================================
+         취소 목록 조회
+    ====================================================== -->
+
+    <select id="selectPaymentCancelList"
+            resultType="com.dhwon.payflow_api.api.paymentCancel.dto.PaymentCancelSelectResponseDto">
+
+        SELECT
+        P.BASE_DATE,
+        P.MERCHANT_ID,
+        P.TX_SEQ,
+        P.CANCEL_CODE,
+        P.CANCEL_MESSAGE,
+        P.ORIGINAL_MERCHANT_ID,
+        P.ORIGINAL_BASE_DATE,
+        P.ORIGINAL_TX_SEQ,
+        P.CREATED_AT
+        FROM PAYMENT_CANCEL P
+        WHERE 1=1
+
+        <if test="dto.merchantId != null and dto.merchantId != ''">
+            AND P.MERCHANT_ID = #{dto.merchantId}
+        </if>
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND P.BASE_DATE <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND P.BASE_DATE <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+        ORDER BY
+        P.BASE_DATE DESC,
+        P.MERCHANT_ID,
+        P.TX_SEQ
+
+        OFFSET #{dto.offset} ROWS
+        FETCH NEXT #{dto.size} ROWS ONLY
+
+    </select>
+
+    <!-- =====================================================
+         취소 목록 COUNT
+    ====================================================== -->
+
+    <select id="selectPaymentCancelListCount"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM PAYMENT_CANCEL P
+        WHERE 1=1
+
+        <if test="dto.merchantId != null and dto.merchantId != ''">
+            AND P.MERCHANT_ID = #{dto.merchantId}
+        </if>
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND P.BASE_DATE <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND P.BASE_DATE <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+    </select>
+
+</mapper>

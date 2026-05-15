@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dhwon.payflow_api.api.aggpayment.mapper.AggPaymentMapper">
+
+    <!-- ===================================================== -->
+    <!-- summary -->
+    <!-- ===================================================== -->
+
+    <select id="selectSummary"
+            resultType="com.dhwon.payflow_api.api.aggpayment.dto.AggPaymentSummaryResponseDto">
+
+        SELECT
+        APPROVE_CNT,
+        APPROVE_AMOUNT,
+        FAIL_CNT,
+        CANCEL_CNT,
+
+        ROUND(
+        CASE
+        WHEN APPROVE_CNT > 0
+        THEN FAIL_CNT / APPROVE_CNT
+        END * 100
+        ,1) AS FAIL_RATE,
+
+        ROUND(
+        CASE
+        WHEN APPROVE_CNT > 0
+        THEN CANCEL_CNT / APPROVE_CNT
+        END * 100
+        ,1) AS CANCEL_RATE
+
+        FROM (
+        SELECT
+        SUM(
+        CASE
+        WHEN PAY_STATUS = 'APPROVE'
+        THEN TOT_CNT
+        ELSE 0
+        END
+        ) AS APPROVE_CNT,
+
+        SUM(
+        CASE
+        WHEN PAY_STATUS = 'APPROVE'
+        THEN TOT_AMOUNT
+        ELSE 0
+        END
+        ) AS APPROVE_AMOUNT,
+
+        SUM(
+        CASE
+        WHEN PAY_STATUS = 'FAIL'
+        THEN TOT_CNT
+        ELSE 0
+        END
+        ) AS FAIL_CNT,
+
+        SUM(
+        CASE
+        WHEN PAY_STATUS = 'CANCEL'
+        THEN TOT_CNT
+        ELSE 0
+        END
+        ) AS CANCEL_CNT
+
+        FROM AGG_PAYMENT_DAILY
+        WHERE 1=1
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND BASE_DATE <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND BASE_DATE <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+        <if test="dto.merchantId != null and dto.merchantId != ''">
+            AND MERCHANT_ID = #{dto.merchantId}
+        </if>
+
+        <if test="dto.payMethod != null and dto.payMethod != ''">
+            AND PAY_METHOD = #{dto.payMethod}
+        </if>
+
+        <if test="dto.payStatus != null and dto.payStatus != ''">
+            AND PAY_STATUS = #{dto.payStatus}
+        </if>
+
+        )
+
+    </select>
+
+    <!-- ===================================================== -->
+    <!-- detail -->
+    <!-- ===================================================== -->
+
+    <select id="selectDetail"
+            resultType="com.dhwon.payflow_api.api.aggpayment.dto.AggPaymentDetailResponseDto">
+
+        SELECT
+        BASE_DATE,
+        MERCHANT_ID,
+        PAY_METHOD,
+
+        SUM(
+        CASE
+        WHEN PAY_STATUS = 'APPROVE'
+        THEN TOT_CNT
+        ELSE 0
+        END
+        ) AS APPROVE_CNT,
+
+        SUM(
+        CASE
+        WHEN PAY_STATUS = 'FAIL'
+        THEN TOT_CNT
+        ELSE 0
+        END
+        ) AS FAIL_CNT,
+
+        SUM(
+        CASE
+        WHEN PAY_STATUS = 'CANCEL'
+        THEN TOT_CNT
+        ELSE 0
+        END
+        ) AS CANCEL_CNT,
+
+        SUM(
+        CASE
+        WHEN PAY_STATUS = 'APPROVE'
+        THEN TOT_AMOUNT
+
+        WHEN PAY_STATUS = 'CANCEL'
+        THEN TOT_AMOUNT * -1
+
+        ELSE 0
+        END
+        ) AS APPROVE_AMOUNT
+
+        FROM AGG_PAYMENT_DAILY
+        WHERE 1=1
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND BASE_DATE <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND BASE_DATE <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+        <if test="dto.merchantId != null and dto.merchantId != ''">
+            AND MERCHANT_ID = #{dto.merchantId}
+        </if>
+
+        <if test="dto.payMethod != null and dto.payMethod != ''">
+            AND PAY_METHOD = #{dto.payMethod}
+        </if>
+
+        <if test="dto.payStatus != null and dto.payStatus != ''">
+            AND PAY_STATUS = #{dto.payStatus}
+        </if>
+
+        GROUP BY
+        BASE_DATE,
+        MERCHANT_ID,
+        PAY_METHOD
+
+        ORDER BY
+        BASE_DATE,
+        MERCHANT_ID,
+        PAY_METHOD
+
+        OFFSET #{dto.offset} ROWS
+        FETCH NEXT #{dto.size} ROWS ONLY
+
+    </select>
+
+    <!-- ===================================================== -->
+    <!-- detail count -->
+    <!-- ===================================================== -->
+
+    <select id="selectDetailCount"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM (
+        SELECT
+        BASE_DATE,
+        MERCHANT_ID,
+        PAY_METHOD
+        FROM AGG_PAYMENT_DAILY
+        WHERE 1=1
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND BASE_DATE <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND BASE_DATE <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+        <if test="dto.merchantId != null and dto.merchantId != ''">
+            AND MERCHANT_ID = #{dto.merchantId}
+        </if>
+
+        <if test="dto.payMethod != null and dto.payMethod != ''">
+            AND PAY_METHOD = #{dto.payMethod}
+        </if>
+
+        <if test="dto.payStatus != null and dto.payStatus != ''">
+            AND PAY_STATUS = #{dto.payStatus}
+        </if>
+
+        GROUP BY
+        BASE_DATE,
+        MERCHANT_ID,
+        PAY_METHOD
+        )
+
+    </select>
+
+</mapper>

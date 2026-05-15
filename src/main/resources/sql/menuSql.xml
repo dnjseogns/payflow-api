@@ -109,7 +109,8 @@
         RM.READ_YN,
         RM.CREATE_YN,
         RM.UPDATE_YN,
-        RM.DELETE_YN
+        RM.DELETE_YN,
+        RM.EXCEL_YN
 
         FROM MST_USER U
 

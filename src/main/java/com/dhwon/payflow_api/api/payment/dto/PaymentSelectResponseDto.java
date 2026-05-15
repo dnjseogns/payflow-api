@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Builder
 @NoArgsConstructor
@@ -21,10 +23,13 @@ public class PaymentSelectResponseDto {
     private String payMethod;
     private String payMethodName;
 
+    private String payProvider;
+    private String payProviderName;
+
     private Long amount;
 
     private String payStatus;
     private String payStatusName;
 
-    private String createdAt;
+    private LocalDateTime createdAt;
 }

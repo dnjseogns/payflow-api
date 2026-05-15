@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dhwon.payflow_api.api.paymentAggStatus.mapper.PaymentAggStatusMapper">
+
+    <select id="selectPaymentAggStatusList"
+            resultType="com.dhwon.payflow_api.api.paymentAggStatus.dto.PaymentAggStatusSelectResponseDto">
+
+        SELECT
+        PAS.base_date,
+        PAS.agg_status,
+        MC.code_name AS agg_status_name,
+        PAS.agg_start_at,
+        PAS.agg_end_at,
+        PAS.retry_count,
+        PAS.error_message,
+        PAS.created_at,
+        PAS.updated_at
+        FROM PAYMENT_AGG_STATUS PAS
+        LEFT JOIN MST_CODE MC
+        ON MC.code_group = 'PAYMENT_AGG_STATUS'
+        AND MC.code = PAS.agg_status
+        AND MC.use_yn = 'Y'
+        WHERE 1=1
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND PAS.base_date <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND PAS.base_date <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+        ORDER BY PAS.base_date DESC
+        OFFSET #{dto.offset} ROWS
+        FETCH NEXT #{dto.size} ROWS ONLY
+
+    </select>
+
+    <select id="selectPaymentAggStatusListCount"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM PAYMENT_AGG_STATUS PAS
+        WHERE 1=1
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND PAS.base_date <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND PAS.base_date <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+    </select>
+
+</mapper>
