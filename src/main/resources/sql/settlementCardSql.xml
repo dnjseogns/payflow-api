@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dhwon.payflow_api.api.settlementCard.mapper.SettlementCardMapper">
+
+    <select id="selectSettlementCardList"
+            resultType="com.dhwon.payflow_api.api.settlementCard.dto.SettlementCardSelectResponseDto">
+
+        SELECT
+        S.MERCHANT_ID,
+        S.BASE_DATE,
+        S.TX_SEQ,
+
+        S.SETTLEMENT_DATE,
+        S.CARD_COMPANY,
+
+        S.AMOUNT,
+        S.FEE_AMOUNT,
+        S.VAT_AMOUNT,
+        S.SETTLEMENT_AMOUNT,
+
+        S.SETTLEMENT_STATUS,
+
+        (
+        SELECT C.CODE_NAME
+        FROM MST_CODE C
+        WHERE C.CODE_GROUP = 'SETTLEMENT_STATUS'
+        AND C.CODE = S.SETTLEMENT_STATUS
+        ) AS SETTLEMENT_STATUS_NAME,
+
+        S.CREATED_AT
+
+        FROM SETTLEMENT_CARD S
+
+        WHERE 1=1
+
+        <if test="dto.merchantId != null and dto.merchantId != ''">
+            AND S.MERCHANT_ID = #{dto.merchantId}
+        </if>
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND S.BASE_DATE <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND S.BASE_DATE <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+        <if test="dto.settlementStatus != null and dto.settlementStatus != ''">
+            AND S.SETTLEMENT_STATUS = #{dto.settlementStatus}
+        </if>
+
+        ORDER BY S.BASE_DATE DESC, S.TX_SEQ
+
+        OFFSET #{dto.offset} ROWS
+        FETCH NEXT #{dto.size} ROWS ONLY
+
+    </select>
+
+    <select id="selectSettlementCardListCount"
+            resultType="int">
+
+        SELECT COUNT(*) CNT
+
+        FROM SETTLEMENT_CARD S
+
+        WHERE 1=1
+
+        <if test="dto.merchantId != null and dto.merchantId != ''">
+            AND S.MERCHANT_ID = #{dto.merchantId}
+        </if>
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND S.BASE_DATE <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND S.BASE_DATE <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+        <if test="dto.settlementStatus != null and dto.settlementStatus != ''">
+            AND S.SETTLEMENT_STATUS = #{dto.settlementStatus}
+        </if>
+
+    </select>
+
+</mapper>

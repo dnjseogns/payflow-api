@@ -80,7 +80,7 @@ src
 
 8. mybatis resultType 버그
 항상 잘 세팅되어있는 프로젝트에 개발/유지보수 했어서 몰랐는데, 세팅 어렵다...
-해결방법1. resultType -> resultMap으로 수정
+해결방법1. resultType -> resultMap으로 수정?
 
 
 

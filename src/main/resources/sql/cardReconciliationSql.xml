@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dhwon.payflow_api.api.cardReconciliation.mapper.CardReconciliationMapper">
+
+    <select id="selectCardReconciliationList"
+            resultType="com.dhwon.payflow_api.api.cardReconciliation.dto.CardReconciliationSelectResponseDto">
+
+        SELECT
+        P.MERCHANT_ID,
+        P.BASE_DATE,
+        P.TX_SEQ,
+
+        P.MERCHANT_ORDER_ID,
+
+        P.PAY_PROVIDER,
+        S.CARD_COMPANY,
+        S.VAN_NAME,
+
+        P.AMOUNT                AS PAYMENT_AMOUNT,
+        S.AMOUNT                AS SETTLEMENT_REQUEST_AMOUNT,
+        S.FEE_AMOUNT,
+        S.VAT_AMOUNT,
+        S.SETTLEMENT_AMOUNT,
+
+        P.PAY_STATUS,
+        S.SETTLEMENT_STATUS,
+
+        CASE
+        -- 정산 데이터 자체가 없음
+        WHEN S.MERCHANT_ID IS NULL
+        THEN 'UNSETTLED'
+        -- 승인인데 정산상태가 완료가 아님
+        WHEN P.PAY_STATUS = 'APPROVE'
+        AND S.SETTLEMENT_STATUS != 'COMPLETE'
+        THEN 'STATUS_MISMATCH'
+        -- 승인인데 금액 다름
+        WHEN P.PAY_STATUS = 'APPROVE'
+        AND P.AMOUNT != S.SETTLEMENT_AMOUNT
+        THEN 'AMOUNT_MISMATCH'
+        -- 정상
+        ELSE 'MATCH'
+        END AS RECONCILIATION_STATUS,
+
+        CASE
+        -- 정산 데이터 자체가 없음
+        WHEN S.MERCHANT_ID IS NULL
+        THEN '미정산'
+        -- 승인인데 정산상태가 완료가 아님
+        WHEN P.PAY_STATUS = 'APPROVE'
+        AND S.SETTLEMENT_STATUS != 'COMPLETE'
+        THEN '상태불일치'
+        -- 승인인데 금액 다름
+        WHEN P.PAY_STATUS = 'APPROVE'
+        AND P.AMOUNT != S.SETTLEMENT_AMOUNT
+        THEN '금액불일치'
+        -- 정상
+        ELSE '정산'
+        END AS RECONCILIATION_STATUS_NAME,
+
+        S.SETTLEMENT_DATE,
+
+        P.CREATED_AT
+
+        FROM PAYMENT P
+
+        LEFT JOIN SETTLEMENT_CARD S
+        ON S.MERCHANT_ID = P.MERCHANT_ID
+        AND S.BASE_DATE   = P.BASE_DATE
+        AND S.TX_SEQ      = P.TX_SEQ
+
+        WHERE 1=1
+
+        AND P.PAY_METHOD = 'CARD'
+
+        <if test="dto.merchantId != null and dto.merchantId != ''">
+            AND P.MERCHANT_ID = #{dto.merchantId}
+        </if>
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND P.BASE_DATE <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND P.BASE_DATE <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+        <if test="dto.reconciliationStatus != null and dto.reconciliationStatus != ''">
+
+            AND
+            (
+            CASE
+
+            WHEN S.TX_SEQ IS NULL
+            THEN 'UNSETTLED'
+
+            WHEN P.PAY_STATUS = 'APPROVE'
+            AND S.SETTLEMENT_STATUS != 'COMPLETE'
+            THEN 'STATUS_MISMATCH'
+
+            WHEN P.AMOUNT != S.AMOUNT
+            THEN 'AMOUNT_MISMATCH'
+
+            ELSE 'MATCH'
+
+            END
+            ) = #{dto.reconciliationStatus}
+
+        </if>
+
+        ORDER BY
+        P.BASE_DATE DESC,
+        P.TX_SEQ DESC
+
+        OFFSET #{dto.offset} ROWS
+        FETCH NEXT #{dto.size} ROWS ONLY
+
+    </select>
+
+    <select id="selectCardReconciliationListCount"
+            resultType="int">
+
+        SELECT COUNT(*) CNT
+
+        FROM PAYMENT P
+
+        LEFT JOIN SETTLEMENT_CARD S
+        ON S.MERCHANT_ID = P.MERCHANT_ID
+        AND S.BASE_DATE   = P.BASE_DATE
+        AND S.TX_SEQ      = P.TX_SEQ
+
+        WHERE 1=1
+
+        AND P.PAY_METHOD = 'CARD'
+
+        <if test="dto.merchantId != null and dto.merchantId != ''">
+            AND P.MERCHANT_ID = #{dto.merchantId}
+        </if>
+
+        <if test="dto.baseDateFrom != null and dto.baseDateFrom != ''">
+            AND P.BASE_DATE <![CDATA[>=]]> #{dto.baseDateFrom}
+        </if>
+
+        <if test="dto.baseDateTo != null and dto.baseDateTo != ''">
+            AND P.BASE_DATE <![CDATA[<=]]> #{dto.baseDateTo}
+        </if>
+
+        <if test="dto.reconciliationStatus != null and dto.reconciliationStatus != ''">
+
+            AND
+            (
+            CASE
+
+            WHEN S.TX_SEQ IS NULL
+            THEN 'UNSETTLED'
+
+            WHEN P.PAY_STATUS = 'APPROVE'
+            AND S.SETTLEMENT_STATUS != 'COMPLETE'
+            THEN 'STATUS_MISMATCH'
+
+            WHEN P.AMOUNT != S.AMOUNT
+            THEN 'AMOUNT_MISMATCH'
+
+            ELSE 'MATCH'
+
+            END
+            ) = #{dto.reconciliationStatus}
+
+        </if>
+
+    </select>
+
+</mapper>
