@@ -1,0 +1,691 @@
+/* =========================================================
+   DROP TABLE
+========================================================= */
+-- 인증/권한 관련
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE MAP_ROLE_MENU PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE MST_USER PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE MST_ROLE PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE MST_MENU PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE MST_REFRESH_TOKEN PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+-- 운영 관련
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE MST_MERCHANT PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE MST_CODE PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE MST_CODE_GROUP PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+-- 결제 관련
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PAYMENT_PHONE PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PAYMENT_CARD PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PAYMENT_EASY_PAY PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PAYMENT_BANK PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PAYMENT_FAIL PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PAYMENT_CANCEL PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PAYMENT_CANCEL_HANDLE PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE REFUND_HANDLE PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PAYMENT PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+
+-- 결제 집계 관련
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PAYMENT_AGG_STATUS PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PAYMENT_AGG_STATUS_LOG PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PAYMENT_AGG_VALIDATE_LOG PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE AGG_PAYMENT_DAILY PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+
+-- 정산 관련
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE SETTLEMENT_CARD PURGE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+
+
+
+
+/* =========================================================
+   권한 마스터 테이블
+   ========================================================= */
+CREATE TABLE MST_ROLE (
+    ROLE_CODE           VARCHAR2(20)    NOT NULL,
+    ROLE_NAME           VARCHAR2(100)   NOT NULL,
+    ROLE_DESC           VARCHAR2(500),
+    USE_YN              CHAR(1)         DEFAULT 'Y' NOT NULL,
+    CREATED_AT          DATE            DEFAULT SYSDATE NOT NULL,
+    CREATED_BY          VARCHAR2(50),
+    UPDATED_AT          DATE,
+    UPDATED_BY          VARCHAR2(50),
+	CONSTRAINT PK_MST_ROLE PRIMARY KEY (ROLE_CODE)
+);
+
+COMMENT ON TABLE MST_ROLE IS '권한 마스터';
+
+COMMENT ON COLUMN MST_ROLE.ROLE_CODE IS '권한 코드';
+COMMENT ON COLUMN MST_ROLE.ROLE_NAME IS '권한명';
+COMMENT ON COLUMN MST_ROLE.ROLE_DESC IS '권한 설명';
+COMMENT ON COLUMN MST_ROLE.USE_YN IS '사용 여부';
+
+
+
+
+/* =========================================================
+   메뉴 마스터 테이블
+   ========================================================= */
+CREATE TABLE MST_MENU (
+    MENU_ID             NUMBER          NOT NULL,
+    PARENT_MENU_ID      NUMBER,
+    MENU_NAME           VARCHAR2(100)   NOT NULL,
+    MENU_URL            VARCHAR2(300),
+    MENU_LEVEL          NUMBER(2)       DEFAULT 1 NOT NULL,
+    SORT_ORDER          NUMBER(5)       DEFAULT 1 NOT NULL,
+    ICON_NAME           VARCHAR2(100),
+    USE_YN              CHAR(1)         DEFAULT 'Y' NOT NULL,
+    CREATED_AT          DATE            DEFAULT SYSDATE NOT NULL,
+    CREATED_BY          VARCHAR2(50),
+    UPDATED_AT          DATE,
+    UPDATED_BY          VARCHAR2(50),
+    CONSTRAINT PK_MST_MENU PRIMARY KEY (MENU_ID)
+);
+
+COMMENT ON TABLE MST_MENU IS '메뉴 마스터';
+
+COMMENT ON COLUMN MST_MENU.MENU_ID IS '메뉴 ID';
+COMMENT ON COLUMN MST_MENU.PARENT_MENU_ID IS '상위 메뉴 ID';
+COMMENT ON COLUMN MST_MENU.MENU_NAME IS '메뉴명';
+COMMENT ON COLUMN MST_MENU.MENU_URL IS '메뉴 URL';
+COMMENT ON COLUMN MST_MENU.MENU_LEVEL IS '메뉴 레벨';
+COMMENT ON COLUMN MST_MENU.SORT_ORDER IS '정렬 순서';
+COMMENT ON COLUMN MST_MENU.ICON_NAME IS '아이콘명';
+COMMENT ON COLUMN MST_MENU.USE_YN IS '사용 여부';
+
+
+
+/* =========================================================
+   권한-메뉴 매핑 테이블
+   ========================================================= */
+CREATE TABLE MAP_ROLE_MENU (
+    ROLE_CODE           VARCHAR2(20)    NOT NULL,
+    MENU_ID             NUMBER          NOT NULL,
+    READ_YN             CHAR(1)         DEFAULT 'Y' NOT NULL,
+    CREATE_YN           CHAR(1)         DEFAULT 'N' NOT NULL,
+    UPDATE_YN           CHAR(1)         DEFAULT 'N' NOT NULL,
+    DELETE_YN           CHAR(1)         DEFAULT 'N' NOT NULL,
+    EXCEL_YN           CHAR(1)         DEFAULT 'N' NOT NULL,
+    CREATED_AT          DATE            DEFAULT SYSDATE NOT NULL,
+    CREATED_BY          VARCHAR2(50),
+    UPDATED_AT          DATE,
+    UPDATED_BY          VARCHAR2(50),
+    CONSTRAINT PK_MAP_ROLE_MENU PRIMARY KEY (ROLE_CODE, MENU_ID),
+    CONSTRAINT FK_MAP_ROLE_MENU_01 FOREIGN KEY (ROLE_CODE) REFERENCES MST_ROLE (ROLE_CODE),
+    CONSTRAINT FK_MAP_ROLE_MENU_02 FOREIGN KEY (MENU_ID) REFERENCES MST_MENU (MENU_ID)
+);
+
+COMMENT ON TABLE MAP_ROLE_MENU IS '권한별 메뉴 매핑';
+
+COMMENT ON COLUMN MAP_ROLE_MENU.ROLE_CODE IS '권한 코드';
+COMMENT ON COLUMN MAP_ROLE_MENU.MENU_ID IS '메뉴 ID';
+COMMENT ON COLUMN MAP_ROLE_MENU.READ_YN IS '조회 권한 여부';
+COMMENT ON COLUMN MAP_ROLE_MENU.CREATE_YN IS '등록 권한 여부';
+COMMENT ON COLUMN MAP_ROLE_MENU.UPDATE_YN IS '수정 권한 여부';
+COMMENT ON COLUMN MAP_ROLE_MENU.DELETE_YN IS '삭제 권한 여부';
+COMMENT ON COLUMN MAP_ROLE_MENU.CREATED_AT IS '생성 일시';
+
+
+/* =========================================================
+   사용자 마스터 테이블
+   ========================================================= */
+
+CREATE TABLE MST_USER (
+    USER_ID             VARCHAR2(50)    NOT NULL,
+    USER_PW             VARCHAR2(200)   NOT NULL,
+    USER_NAME           VARCHAR2(100)   NOT NULL,
+    ROLE_CODE           VARCHAR2(20)    NOT NULL,
+    USE_YN              CHAR(1)         DEFAULT 'Y' NOT NULL,
+    LAST_LOGIN_DATE       DATE,
+    CREATED_AT          DATE            DEFAULT SYSDATE NOT NULL,
+    CREATED_BY          VARCHAR2(50),
+    UPDATED_AT          DATE,
+    UPDATED_BY          VARCHAR2(50),
+
+    CONSTRAINT PK_MST_USER PRIMARY KEY (USER_ID),
+    CONSTRAINT FK_MST_USER_01 FOREIGN KEY (ROLE_CODE) REFERENCES MST_ROLE (ROLE_CODE)
+);
+
+COMMENT ON TABLE MST_USER IS '사용자 마스터';
+
+COMMENT ON COLUMN MST_USER.USER_ID IS '사용자 아이디';
+COMMENT ON COLUMN MST_USER.USER_PW IS '비밀번호';
+COMMENT ON COLUMN MST_USER.USER_NAME IS '사용자명';
+COMMENT ON COLUMN MST_USER.ROLE_CODE IS '권한 코드';
+COMMENT ON COLUMN MST_USER.USE_YN IS '사용 여부';
+COMMENT ON COLUMN MST_USER.LAST_LOGIN_DATE IS '최종 로그인 일시';
+COMMENT ON COLUMN MST_USER.CREATED_AT IS '생성 일시';
+COMMENT ON COLUMN MST_USER.CREATED_BY IS '생성자';
+COMMENT ON COLUMN MST_USER.UPDATED_AT IS '수정 일시';
+COMMENT ON COLUMN MST_USER.UPDATED_BY IS '수정자';
+
+
+
+
+
+
+
+
+/* =========================================================
+   리프레시 토큰
+   ========================================================= */
+
+CREATE TABLE MST_REFRESH_TOKEN (
+    USER_ID        VARCHAR2(30) NOT NULL,
+    REFRESH_TOKEN  VARCHAR2(500) NOT NULL,
+    EXPIRE_DATE      DATE NOT NULL,
+    CREATED_AT          DATE         DEFAULT SYSDATE NOT NULL,
+    CREATED_BY          VARCHAR2(50),
+    UPDATED_AT          DATE,
+    UPDATED_BY          VARCHAR2(50),
+    CONSTRAINT PK_MST_REFRESH_TOKEN PRIMARY KEY(USER_ID)
+);
+
+COMMENT ON TABLE MST_REFRESH_TOKEN IS '리프레시 토큰';
+
+COMMENT ON COLUMN MST_REFRESH_TOKEN.USER_ID IS '사용자ID';
+COMMENT ON COLUMN MST_REFRESH_TOKEN.REFRESH_TOKEN IS '리프레시 토큰';
+COMMENT ON COLUMN MST_REFRESH_TOKEN.EXPIRE_DATE IS '만료일시';
+
+
+
+
+
+
+
+
+CREATE TABLE MST_MERCHANT (
+    merchant_id            VARCHAR2(20),
+    merchant_name          VARCHAR2(100),
+    merchant_status        VARCHAR2(20),
+    business_number        VARCHAR2(20),
+    ceo_name               VARCHAR2(50),
+    contact_number         VARCHAR2(30),
+    contract_started_at    DATE,
+    contract_ended_at      DATE,
+    created_at             DATE DEFAULT SYSDATE,
+    created_by             VARCHAR2(50),
+    updated_at             DATE,
+    updated_by             VARCHAR2(50),
+
+    CONSTRAINT PK_MST_MERCHANT PRIMARY KEY (merchant_id)
+);
+
+COMMENT ON TABLE MST_MERCHANT IS '가맹점 정보';
+
+COMMENT ON COLUMN MST_MERCHANT.merchant_id IS '가맹점ID';
+COMMENT ON COLUMN MST_MERCHANT.merchant_name IS '가맹점명';
+COMMENT ON COLUMN MST_MERCHANT.merchant_status IS '가맹점 상태';
+COMMENT ON COLUMN MST_MERCHANT.business_number IS '사업자번호';
+COMMENT ON COLUMN MST_MERCHANT.ceo_name IS '대표자명';
+COMMENT ON COLUMN MST_MERCHANT.contact_number IS '연락처';
+COMMENT ON COLUMN MST_MERCHANT.contract_started_at IS '계약시작일';
+COMMENT ON COLUMN MST_MERCHANT.contract_ended_at IS '계약종료일';
+COMMENT ON COLUMN MST_MERCHANT.created_at IS '생성일';
+COMMENT ON COLUMN MST_MERCHANT.created_by IS '생성자';
+COMMENT ON COLUMN MST_MERCHANT.updated_at IS '수정일';
+COMMENT ON COLUMN MST_MERCHANT.updated_by IS '수정자';
+
+
+
+
+
+
+CREATE TABLE MST_CODE_GROUP (
+    code_group     VARCHAR2(30),
+    group_name     VARCHAR2(100),
+    description    VARCHAR2(255),
+    use_yn         CHAR(1) DEFAULT 'Y',
+    created_at     DATE DEFAULT SYSDATE,
+    created_by     VARCHAR2(50),
+    updated_at     DATE,
+    updated_by     VARCHAR2(50),
+
+    CONSTRAINT PK_MST_CODE_GROUP PRIMARY KEY (code_group)
+);
+COMMENT ON TABLE MST_CODE_GROUP IS '코드 그룹';
+
+COMMENT ON COLUMN MST_CODE_GROUP.code_group IS '그룹코드';
+COMMENT ON COLUMN MST_CODE_GROUP.group_name IS '그룹명';
+COMMENT ON COLUMN MST_CODE_GROUP.description IS '설명';
+COMMENT ON COLUMN MST_CODE_GROUP.use_yn IS '사용여부';
+COMMENT ON COLUMN MST_CODE_GROUP.created_at IS '생성일';
+COMMENT ON COLUMN MST_CODE_GROUP.created_by IS '생성자';
+COMMENT ON COLUMN MST_CODE_GROUP.updated_at IS '수정일';
+COMMENT ON COLUMN MST_CODE_GROUP.updated_by IS '수정자';
+
+
+
+CREATE TABLE MST_CODE (
+    code_group     VARCHAR2(30),
+    code           VARCHAR2(30),
+    code_name      VARCHAR2(100),
+    sort_order     NUMBER,
+    use_yn         CHAR(1) DEFAULT 'Y',
+    description    VARCHAR2(255),
+    created_at     DATE DEFAULT SYSDATE,
+    created_by     VARCHAR2(50),
+    updated_at     DATE,
+    updated_by     VARCHAR2(50),
+
+    CONSTRAINT PK_MST_CODE PRIMARY KEY (code_group, code),
+    CONSTRAINT FK_MST_CODE_GROUP FOREIGN KEY (code_group)
+        REFERENCES MST_CODE_GROUP(code_group)
+);
+COMMENT ON TABLE MST_CODE IS '코드 상세';
+
+COMMENT ON COLUMN MST_CODE.code_group IS '그룹코드';
+COMMENT ON COLUMN MST_CODE.code IS '코드값';
+COMMENT ON COLUMN MST_CODE.code_name IS '코드명';
+COMMENT ON COLUMN MST_CODE.sort_order IS '정렬순서';
+COMMENT ON COLUMN MST_CODE.use_yn IS '사용여부';
+COMMENT ON COLUMN MST_CODE.description IS '설명';
+COMMENT ON COLUMN MST_CODE.created_at IS '생성일';
+COMMENT ON COLUMN MST_CODE.created_by IS '생성자';
+COMMENT ON COLUMN MST_CODE.updated_at IS '수정일';
+COMMENT ON COLUMN MST_CODE.updated_by IS '수정자';
+
+
+
+
+
+
+
+
+/* =========================================================
+   1. PAYMENT
+========================================================= */
+
+CREATE TABLE PAYMENT (
+    merchant_id            VARCHAR2(50),
+    base_date              VARCHAR2(8),
+    tx_seq                 NUMBER,
+    merchant_order_id      VARCHAR2(100),
+    merchant_order_date    DATE,
+    pay_method             VARCHAR2(20),
+    pay_provider           VARCHAR2(10),
+    amount                 NUMBER,
+    pay_status                 VARCHAR2(20),
+    created_at             DATE
+)
+PARTITION BY RANGE (base_date)
+(
+    PARTITION p_202601 VALUES LESS THAN ('20260201'),
+    PARTITION p_202602 VALUES LESS THAN ('20260301'),
+    PARTITION p_max VALUES LESS THAN (MAXVALUE)
+);
+
+ALTER TABLE PAYMENT ADD CONSTRAINT PK_PAYMENT PRIMARY KEY (merchant_id, base_date, tx_seq);
+
+CREATE INDEX IDX_PAYMENT_01 ON PAYMENT(base_date, merchant_id);
+CREATE INDEX IDX_PAYMENT_02 ON PAYMENT(pay_status, base_date, merchant_id);
+CREATE INDEX IDX_PAYMENT_03 ON PAYMENT(pay_method, pay_provider, base_date, merchant_id);
+
+
+
+COMMENT ON TABLE PAYMENT IS '결제 메인';
+COMMENT ON COLUMN PAYMENT.base_date IS '기준일 (YYYYMMDD)';
+
+/* =========================================================
+   2. PAYMENT_PHONE
+========================================================= */
+
+CREATE TABLE PAYMENT_PHONE (
+    merchant_id       VARCHAR2(50),
+    base_date         VARCHAR2(8),
+    tx_seq            NUMBER,
+    phone_number      VARCHAR2(20),
+    telecom_company   VARCHAR2(20),
+    buyer_name        VARCHAR2(50),
+    created_at        DATE
+)
+PARTITION BY RANGE (base_date)
+(
+    PARTITION p_202601 VALUES LESS THAN ('20260201'),
+    PARTITION p_max VALUES LESS THAN (MAXVALUE)
+);
+
+ALTER TABLE PAYMENT_PHONE ADD CONSTRAINT PK_PAYMENT_PHONE PRIMARY KEY (merchant_id, base_date, tx_seq);
+
+CREATE INDEX IDX_PHONE_01 ON PAYMENT_PHONE(base_date, merchant_id);
+
+/* =========================================================
+   3. PAYMENT_CARD
+========================================================= */
+
+CREATE TABLE PAYMENT_CARD (
+    merchant_id           VARCHAR2(50),
+    base_date             VARCHAR2(8),
+    tx_seq                NUMBER,
+    card_company          VARCHAR2(20),
+    card_number_masking   VARCHAR2(30),
+    installment_month     NUMBER,
+    approval_number       VARCHAR2(30),
+    created_at            DATE
+)
+PARTITION BY RANGE (base_date)
+(
+    PARTITION p_202601 VALUES LESS THAN ('20260201'),
+    PARTITION p_max VALUES LESS THAN (MAXVALUE)
+);
+
+ALTER TABLE PAYMENT_CARD ADD CONSTRAINT PK_PAYMENT_CARD PRIMARY KEY (merchant_id, base_date, tx_seq);
+
+CREATE INDEX IDX_CARD_01 ON PAYMENT_CARD(base_date, merchant_id);
+
+
+/* =========================================================
+   4. PAYMENT_EASY_PAY
+========================================================= */
+
+CREATE TABLE PAYMENT_EASY_PAY (
+    merchant_id       VARCHAR2(50),
+    base_date         VARCHAR2(8),
+    tx_seq            NUMBER,
+    easy_pay_type     VARCHAR2(20),
+    easy_pay_tx_id    VARCHAR2(50),
+    buyer_name        VARCHAR2(50),
+    created_at        DATE
+)
+PARTITION BY RANGE (base_date)
+(
+    PARTITION p_202601 VALUES LESS THAN ('20260201'),
+    PARTITION p_max VALUES LESS THAN (MAXVALUE)
+);
+
+ALTER TABLE PAYMENT_EASY_PAY ADD CONSTRAINT PK_PAYMENT_EASY_PAY PRIMARY KEY (merchant_id, base_date, tx_seq);
+
+CREATE INDEX IDX_EASYPAY_01 ON PAYMENT_EASY_PAY(base_date, merchant_id);
+
+
+/* =========================================================
+   5. PAYMENT_BANK
+========================================================= */
+
+CREATE TABLE PAYMENT_BANK (
+    merchant_id               VARCHAR2(50),
+    base_date                 VARCHAR2(8),
+    tx_seq                    NUMBER,
+    bank_code                 VARCHAR2(20),
+    account_number_masking    VARCHAR2(30),
+    depositor_name            VARCHAR2(50),
+    created_at                DATE
+)
+PARTITION BY RANGE (base_date)
+(
+    PARTITION p_202601 VALUES LESS THAN ('20260201'),
+    PARTITION p_max VALUES LESS THAN (MAXVALUE)
+);
+
+ALTER TABLE PAYMENT_BANK ADD CONSTRAINT PK_PAYMENT_BANK PRIMARY KEY (merchant_id, base_date, tx_seq);
+
+CREATE INDEX IDX_BANK_01 ON PAYMENT_BANK(base_date, merchant_id);
+
+
+/* =========================================================
+   6. PAYMENT_FAIL
+========================================================= */
+
+CREATE TABLE PAYMENT_FAIL (
+    merchant_id     VARCHAR2(50),
+    base_date       VARCHAR2(8),
+    tx_seq          NUMBER,
+    fail_code       VARCHAR2(20),
+    fail_message    VARCHAR2(200),
+    created_at      DATE
+);
+
+ALTER TABLE PAYMENT_FAIL ADD CONSTRAINT PK_PAYMENT_FAIL PRIMARY KEY (merchant_id, base_date, tx_seq);
+
+CREATE INDEX IDX_FAIL_01 ON PAYMENT_FAIL(base_date, merchant_id);
+
+
+/* =========================================================
+   7. PAYMENT_CANCEL
+========================================================= */
+
+CREATE TABLE PAYMENT_CANCEL (
+    base_date               VARCHAR2(8),
+    merchant_id             VARCHAR2(50),
+	    tx_seq              NUMBER,
+    cancel_code             VARCHAR2(20),
+    cancel_message          VARCHAR2(200),
+    original_merchant_id    VARCHAR2(50),
+    original_base_date      VARCHAR2(8),
+    original_tx_seq         NUMBER,
+    created_at              DATE
+);
+
+ALTER TABLE PAYMENT_CANCEL ADD CONSTRAINT PK_PAYMENT_CANCEL PRIMARY KEY (merchant_id, base_date, tx_seq);
+
+CREATE INDEX IDX_CANCEL_01 ON PAYMENT_CANCEL(base_date, merchant_id);
+CREATE INDEX IDX_CANCEL_02 ON PAYMENT_CANCEL(original_merchant_id, original_base_date, original_tx_seq);
+
+
+/* =========================================================
+   8. PAYMENT_CANCEL_HANDLE
+========================================================= */
+
+CREATE TABLE PAYMENT_CANCEL_HANDLE (
+    base_date               VARCHAR2(8),
+    merchant_id             VARCHAR2(50),
+    cancel_seq              NUMBER,
+    cancel_code             VARCHAR2(20),
+    cancel_message          VARCHAR2(200),
+    original_merchant_id    VARCHAR2(50),
+    original_base_date      VARCHAR2(8),
+    original_tx_seq         NUMBER,
+    created_at              DATE
+);
+
+ALTER TABLE PAYMENT_CANCEL_HANDLE ADD CONSTRAINT PK_PAYMENT_CANCEL_HANDLE PRIMARY KEY (merchant_id, base_date, cancel_seq);
+
+CREATE INDEX IDX_C_HANDLE_01 ON PAYMENT_CANCEL_HANDLE(base_date, merchant_id);
+CREATE INDEX IDX_C_HANDLE_02 ON PAYMENT_CANCEL_HANDLE(original_merchant_id, original_base_date, original_tx_seq);
+
+/* =========================================================
+   9. REFUND_HANDLE
+========================================================= */
+CREATE TABLE REFUND_HANDLE (
+    merchant_id      VARCHAR2(50),
+    base_date        VARCHAR2(8),
+    refund_seq       NUMBER,
+    refund_amount    NUMBER,
+    refund_count     NUMBER,
+    refund_code      VARCHAR2(20),
+    refund_message   VARCHAR2(200),
+    created_at       DATE,
+    created_by       VARCHAR2(50),
+    updated_at       DATE,
+    updated_by       VARCHAR2(50)
+);
+
+ALTER TABLE REFUND_HANDLE ADD CONSTRAINT PK_REFUND_HANDLE PRIMARY KEY (merchant_id, base_date, refund_seq);
+
+CREATE INDEX IDX_REFUND_01 ON REFUND_HANDLE(base_date, merchant_id);
+
+
+
+
+
+
+
+
+    /************************
+    PAYMENT_AGG_STATUS
+    **********************/
+
+    CREATE TABLE PAYMENT_AGG_STATUS (
+    base_date           CHAR(8)            NOT NULL,
+
+    agg_status          CHAR(1)            DEFAULT 'N' NOT NULL,
+    -- N : 미집계
+    -- P : 진행중
+    -- Y : 완료
+    -- E : 오류
+
+    agg_start_at        TIMESTAMP,
+    agg_end_at          TIMESTAMP,
+
+    retry_count         NUMBER(5)          DEFAULT 0 NOT NULL,
+
+    error_message       VARCHAR2(1000),
+
+    created_at          TIMESTAMP          DEFAULT SYSTIMESTAMP NOT NULL,
+    updated_at          TIMESTAMP          DEFAULT SYSTIMESTAMP NOT NULL,
+
+    CONSTRAINT PK_PAYMENT_AGG_STATUS
+        PRIMARY KEY (base_date)
+);
+
+
+
+
+
+    /************************
+    PAYMENT_AGG_STATUS_LOG
+    **********************/
+
+   CREATE TABLE PAYMENT_AGG_STATUS_LOG (
+    base_date               CHAR(8)            NOT NULL,
+
+    execution_start_at      TIMESTAMP          NOT NULL,
+    execution_end_at        TIMESTAMP,
+
+    execution_type          CHAR(1)            NOT NULL,
+    -- A : 자동집계
+    -- M : 수동재집계
+
+    execution_status        CHAR(1)            NOT NULL,
+    -- S : 시작
+    -- Y : 성공
+    -- E : 실패
+
+    total_count             NUMBER(19)         DEFAULT 0 NOT NULL,
+    success_count           NUMBER(19)         DEFAULT 0 NOT NULL,
+    fail_count              NUMBER(19)         DEFAULT 0 NOT NULL,
+
+    error_message           VARCHAR2(2000),
+
+    requested_by            VARCHAR2(50),
+
+    created_at              TIMESTAMP          DEFAULT SYSTIMESTAMP NOT NULL,
+
+    CONSTRAINT PK_PAYMENT_AGG_STATUS_LOG
+        PRIMARY KEY (
+            base_date,
+            execution_start_at
+        )
+);
+
+
+
+
+CREATE TABLE PAYMENT_AGG_VALIDATE_LOG (
+    base_date       VARCHAR2(8),
+    merchant_id     VARCHAR2(50),
+    pay_status      VARCHAR2(20),
+    pay_method      VARCHAR2(20),
+
+    source_cnt      NUMBER,
+    source_amt      NUMBER,
+    target_cnt      NUMBER,
+    target_amt      NUMBER,
+
+    diff_yn         VARCHAR2(1),
+    created_at      DATE DEFAULT SYSDATE
+);
+
+
+
+
+
+
+CREATE TABLE AGG_PAYMENT_DAILY (
+    base_date          VARCHAR2(8)    NOT NULL,
+    merchant_id        VARCHAR2(50)   NOT NULL,
+    pay_method         VARCHAR2(20)   NOT NULL,
+    pay_provider       VARCHAR2(20)   NOT NULL,
+    pay_status         VARCHAR2(20)   NOT NULL,
+
+    tot_cnt            NUMBER         DEFAULT 0 NOT NULL,
+    tot_amount         NUMBER         DEFAULT 0 NOT NULL,
+
+    created_at         DATE           DEFAULT SYSDATE NOT NULL
+)
+PARTITION BY RANGE (base_date)
+(
+    PARTITION p_202601 VALUES LESS THAN ('20260201'),
+    PARTITION p_202602 VALUES LESS THAN ('20260301'),
+    PARTITION p_max    VALUES LESS THAN (MAXVALUE)
+);
+
+ALTER TABLE AGG_PAYMENT_DAILY
+ADD CONSTRAINT PK_AGG_PAYMENT_DAILY
+PRIMARY KEY (
+    merchant_id,
+    base_date,
+    pay_method,
+    pay_provider,
+    pay_status
+);
+
+
+
+
+
+
+
+CREATE TABLE SETTLEMENT_CARD (
+
+    merchant_id            VARCHAR2(50),
+    base_date              VARCHAR2(8),
+    tx_seq                 NUMBER,
+
+    settlement_date        VARCHAR2(8),
+
+    card_company           VARCHAR2(20),
+    van_name               VARCHAR2(20),
+
+    amount                 NUMBER,
+    fee_amount             NUMBER,
+    vat_amount             NUMBER,
+    settlement_amount      NUMBER,
+
+    settlement_status      VARCHAR2(20),
+
+    created_at             DATE DEFAULT SYSDATE,
+    updated_at             DATE
+
+)
+PARTITION BY RANGE (base_date)
+(
+    PARTITION p_202601 VALUES LESS THAN ('20260201'),
+    PARTITION p_202602 VALUES LESS THAN ('20260301'),
+    PARTITION p_max VALUES LESS THAN (MAXVALUE)
+);
+
+ALTER TABLE SETTLEMENT_CARD
+ADD CONSTRAINT PK_SETTLEMENT_CARD
+PRIMARY KEY (
+    merchant_id,
+    base_date,
+    tx_seq
+);
+
+CREATE INDEX IDX_SETTLEMENT_CARD_01
+ON SETTLEMENT_CARD (
+    merchant_id,
+    settlement_date
+);
+
+CREATE INDEX IDX_SETTLEMENT_CARD_02
+ON SETTLEMENT_CARD (
+    settlement_status,
+    settlement_date
+);
+
+
+
+
+
+
+
+
+

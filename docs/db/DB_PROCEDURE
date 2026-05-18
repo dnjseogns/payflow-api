@@ -1,0 +1,368 @@
+
+CREATE OR REPLACE PROCEDURE PR_VALIDATE_PAYMENT_AGG (
+    p_base_date IN VARCHAR2
+)
+IS
+BEGIN
+
+    /* 초기화 */
+    DELETE FROM PAYMENT_AGG_VALIDATE_LOG
+    WHERE base_date = p_base_date;
+
+
+    /* =========================================================
+       1. PAYMENT 기준 집계
+    ========================================================= */
+    INSERT INTO PAYMENT_AGG_VALIDATE_LOG (
+        base_date,
+        merchant_id,
+        pay_status,
+        pay_method,
+        source_cnt,
+        source_amt,
+        target_cnt,
+        target_amt,
+        diff_yn
+    )
+    SELECT
+        base_date,
+        merchant_id,
+        pay_status,
+        pay_method,
+        COUNT(*) AS source_cnt,
+        SUM(amount) AS source_amt,
+        0,
+        0,
+        'N'
+    FROM PAYMENT
+    WHERE base_date = p_base_date
+    GROUP BY base_date, merchant_id, pay_status, pay_method;
+
+
+
+    /* =========================================================
+       2. FAIL (JOIN 검증 + 안정 MERGE)
+    ========================================================= */
+    MERGE INTO PAYMENT_AGG_VALIDATE_LOG T
+    USING (
+        SELECT
+            P.BASE_DATE,
+            P.MERCHANT_ID,
+            P.PAY_STATUS,
+            COUNT(*) AS CNT
+        FROM PAYMENT P
+        JOIN PAYMENT_FAIL PF
+            ON  P.MERCHANT_ID = PF.MERCHANT_ID
+            AND P.BASE_DATE   = PF.BASE_DATE
+            AND P.TX_SEQ      = PF.TX_SEQ
+        WHERE P.BASE_DATE = p_base_date
+          AND P.PAY_STATUS = 'FAIL'
+        GROUP BY P.BASE_DATE, P.MERCHANT_ID, P.PAY_STATUS
+    ) F
+    ON (
+        T.BASE_DATE   = F.BASE_DATE
+        AND T.MERCHANT_ID = F.MERCHANT_ID
+        AND T.PAY_STATUS  = F.PAY_STATUS
+    )
+    WHEN MATCHED THEN
+        UPDATE SET
+            T.TARGET_CNT = F.CNT,
+            T.DIFF_YN =
+                CASE WHEN T.SOURCE_CNT = F.CNT THEN 'N' ELSE 'Y' END;
+
+
+
+    /* =========================================================
+       3. CANCEL (수정된 안정형)
+    ========================================================= */
+    MERGE INTO PAYMENT_AGG_VALIDATE_LOG T
+    USING (
+        SELECT
+            P.BASE_DATE,
+            P.MERCHANT_ID,
+            P.PAY_STATUS,
+            COUNT(*) AS CNT
+        FROM PAYMENT P
+        JOIN PAYMENT_CANCEL PC
+            ON  P.MERCHANT_ID = PC.MERCHANT_ID
+            AND P.BASE_DATE   = PC.BASE_DATE
+            AND P.TX_SEQ      = PC.TX_SEQ
+        WHERE P.BASE_DATE = p_base_date
+          AND P.PAY_STATUS = 'CANCEL'
+        GROUP BY P.BASE_DATE, P.MERCHANT_ID, P.PAY_STATUS
+    ) C
+    ON (
+        T.BASE_DATE   = C.BASE_DATE
+        AND T.MERCHANT_ID = C.MERCHANT_ID
+        AND T.PAY_STATUS  = C.PAY_STATUS
+    )
+    WHEN MATCHED THEN
+        UPDATE SET
+            T.TARGET_CNT = C.CNT,
+            T.DIFF_YN =
+                CASE WHEN T.SOURCE_CNT = C.CNT THEN 'N' ELSE 'Y' END;
+
+
+
+    /* =========================================================
+       4. CARD
+    ========================================================= */
+    MERGE INTO PAYMENT_AGG_VALIDATE_LOG T
+    USING (
+        SELECT
+            P.BASE_DATE,
+            P.MERCHANT_ID,
+            P.PAY_METHOD,
+            COUNT(*) AS CNT
+        FROM PAYMENT P
+        JOIN PAYMENT_CARD PC
+            ON  P.MERCHANT_ID = PC.MERCHANT_ID
+            AND P.BASE_DATE   = PC.BASE_DATE
+            AND P.TX_SEQ      = PC.TX_SEQ
+        WHERE P.BASE_DATE = p_base_date
+          AND P.PAY_METHOD = 'CARD'
+        GROUP BY P.BASE_DATE, P.MERCHANT_ID, P.PAY_METHOD
+    ) A
+    ON (
+        T.BASE_DATE   = A.BASE_DATE
+        AND T.MERCHANT_ID = A.MERCHANT_ID
+        AND T.PAY_METHOD  = A.PAY_METHOD
+    )
+    WHEN MATCHED THEN
+        UPDATE SET
+            T.TARGET_CNT = A.CNT,
+            T.DIFF_YN =
+                CASE WHEN T.SOURCE_CNT = A.CNT THEN 'N' ELSE 'Y' END;
+
+
+
+    /* =========================================================
+       5. PHONE
+    ========================================================= */
+    MERGE INTO PAYMENT_AGG_VALIDATE_LOG T
+    USING (
+        SELECT
+            P.BASE_DATE,
+            P.MERCHANT_ID,
+            P.PAY_METHOD,
+            COUNT(*) AS CNT
+        FROM PAYMENT P
+        JOIN PAYMENT_PHONE PP
+            ON  P.MERCHANT_ID = PP.MERCHANT_ID
+            AND P.BASE_DATE   = PP.BASE_DATE
+            AND P.TX_SEQ      = PP.TX_SEQ
+        WHERE P.BASE_DATE = p_base_date
+          AND P.PAY_METHOD = 'PHONE'
+        GROUP BY P.BASE_DATE, P.MERCHANT_ID, P.PAY_METHOD
+    ) P
+    ON (
+        T.BASE_DATE   = P.BASE_DATE
+        AND T.MERCHANT_ID = P.MERCHANT_ID
+        AND T.PAY_METHOD  = P.PAY_METHOD
+    )
+    WHEN MATCHED THEN
+        UPDATE SET
+            T.TARGET_CNT = P.CNT,
+            T.DIFF_YN =
+                CASE WHEN T.SOURCE_CNT = P.CNT THEN 'N' ELSE 'Y' END;
+
+
+
+    /* =========================================================
+       6. BANK
+    ========================================================= */
+    MERGE INTO PAYMENT_AGG_VALIDATE_LOG T
+    USING (
+        SELECT
+            P.BASE_DATE,
+            P.MERCHANT_ID,
+            P.PAY_METHOD,
+            COUNT(*) AS CNT
+        FROM PAYMENT P
+        JOIN PAYMENT_BANK PB
+            ON  P.MERCHANT_ID = PB.MERCHANT_ID
+            AND P.BASE_DATE   = PB.BASE_DATE
+            AND P.TX_SEQ      = PB.TX_SEQ
+        WHERE P.BASE_DATE = p_base_date
+          AND P.PAY_METHOD = 'BANK'
+        GROUP BY P.BASE_DATE, P.MERCHANT_ID, P.PAY_METHOD
+    ) B
+    ON (
+        T.BASE_DATE   = B.BASE_DATE
+        AND T.MERCHANT_ID = B.MERCHANT_ID
+        AND T.PAY_METHOD  = B.PAY_METHOD
+    )
+    WHEN MATCHED THEN
+        UPDATE SET
+            T.TARGET_CNT = B.CNT,
+            T.DIFF_YN =
+                CASE WHEN T.SOURCE_CNT = B.CNT THEN 'N' ELSE 'Y' END;
+
+
+
+    /* =========================================================
+       7. EASY_PAY
+    ========================================================= */
+    MERGE INTO PAYMENT_AGG_VALIDATE_LOG T
+    USING (
+        SELECT
+            P.BASE_DATE,
+            P.MERCHANT_ID,
+            P.PAY_METHOD,
+            COUNT(*) AS CNT
+        FROM PAYMENT P
+        JOIN PAYMENT_EASY_PAY PE
+            ON  P.MERCHANT_ID = PE.MERCHANT_ID
+            AND P.BASE_DATE   = PE.BASE_DATE
+            AND P.TX_SEQ      = PE.TX_SEQ
+        WHERE P.BASE_DATE = p_base_date
+          AND P.PAY_METHOD = 'EASY_PAY'
+        GROUP BY P.BASE_DATE, P.MERCHANT_ID, P.PAY_METHOD
+    ) E
+    ON (
+        T.BASE_DATE   = E.BASE_DATE
+        AND T.MERCHANT_ID = E.MERCHANT_ID
+        AND T.PAY_METHOD  = E.PAY_METHOD
+    )
+    WHEN MATCHED THEN
+        UPDATE SET
+            T.TARGET_CNT = E.CNT,
+            T.DIFF_YN =
+                CASE WHEN T.SOURCE_CNT = E.CNT THEN 'N' ELSE 'Y' END;
+
+END;
+/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CREATE OR REPLACE PROCEDURE PRC_AGG_PAYMENT_DAILY (
+    P_BASE_DATE IN VARCHAR2
+)
+IS
+BEGIN
+
+    /* =========================================================
+       1. 기존 집계 데이터 삭제
+    ========================================================= */
+    DELETE FROM AGG_PAYMENT_DAILY
+     WHERE BASE_DATE = P_BASE_DATE;
+
+    /* =========================================================
+       2. 일일 결제 집계 생성
+    ========================================================= */
+    INSERT INTO AGG_PAYMENT_DAILY (
+        BASE_DATE,
+        MERCHANT_ID,
+        PAY_METHOD,
+        PAY_PROVIDER,
+        PAY_STATUS,
+        TOT_CNT,
+        TOT_AMOUNT,
+        CREATED_AT
+    )
+    SELECT
+        P_BASE_DATE                                                   AS BASE_DATE,
+        FRAME.MERCHANT_ID,
+        FRAME.PAY_METHOD,
+        FRAME.PAY_PROVIDER,
+        FRAME.PAY_STATUS,
+        NVL(PP.TOT_CNT, 0)                                            AS TOT_CNT,
+        NVL(PP.TOT_AMOUNT, 0)                                         AS TOT_AMOUNT,
+        SYSDATE                                                       AS CREATED_AT
+    FROM (
+
+        /* =====================================================
+           유효한 결제수단 + 결제기관 조합 생성
+        ===================================================== */
+        SELECT
+            M.MERCHANT_ID,
+            MP.PAY_METHOD,
+            MP.PAY_PROVIDER,
+            S.CODE AS PAY_STATUS
+        FROM MST_MERCHANT M
+
+        CROSS JOIN (
+            SELECT 'CARD'     AS PAY_METHOD, CODE AS PAY_PROVIDER
+              FROM MST_CODE
+             WHERE CODE_GROUP = 'CARD_COMPANY'
+
+            UNION ALL
+
+            SELECT 'BANK'     AS PAY_METHOD, CODE AS PAY_PROVIDER
+              FROM MST_CODE
+             WHERE CODE_GROUP = 'BANK_CODE'
+
+            UNION ALL
+
+            SELECT 'PHONE'    AS PAY_METHOD, CODE AS PAY_PROVIDER
+              FROM MST_CODE
+             WHERE CODE_GROUP = 'TELECOM_COMPANY'
+
+            UNION ALL
+
+            SELECT 'EASY_PAY' AS PAY_METHOD, CODE AS PAY_PROVIDER
+              FROM MST_CODE
+             WHERE CODE_GROUP = 'EASY_PAY_TYPE'
+        ) MP
+
+        CROSS JOIN (
+            SELECT CODE
+              FROM MST_CODE
+             WHERE CODE_GROUP = 'PAY_STATUS'
+        ) S
+
+    ) FRAME
+
+    LEFT JOIN (
+
+        /* =====================================================
+           실제 결제 집계
+        ===================================================== */
+        SELECT
+            MERCHANT_ID,
+            PAY_METHOD,
+            PAY_PROVIDER,
+            PAY_STATUS,
+            COUNT(*)       AS TOT_CNT,
+            SUM(AMOUNT)    AS TOT_AMOUNT
+        FROM PAYMENT
+        WHERE BASE_DATE = P_BASE_DATE
+        GROUP BY
+            MERCHANT_ID,
+            PAY_METHOD,
+            PAY_PROVIDER,
+            PAY_STATUS
+
+    ) PP
+    ON (
+           FRAME.MERCHANT_ID = PP.MERCHANT_ID
+       AND FRAME.PAY_METHOD  = PP.PAY_METHOD
+       AND FRAME.PAY_PROVIDER = PP.PAY_PROVIDER
+       AND FRAME.PAY_STATUS  = PP.PAY_STATUS
+    )
+    order by FRAME.MERCHANT_ID, FRAME.PAY_METHOD, FRAME.PAY_PROVIDER, FRAME.PAY_STATUS;
+
+    COMMIT;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        RAISE;
+END PRC_AGG_PAYMENT_DAILY;
+/
+
+
+
