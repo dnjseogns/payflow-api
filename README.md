@@ -1,7 +1,7 @@
 [프로그램 소개]
-PayFlow는 결제 데이터를 조회/관리하고, 집계 및 정산 데이터를 
+• PayFlow는 결제 데이터를 조회/관리하고, 집계 및 정산 데이터를 
 조회/재처리 하기 위해 만들어진 관리자 시스템입니다.
-JWT 인증 기반의 공통 API 응답 처리, 사용자 권한 관리, 
+• JWT 인증 기반의 공통 API 응답 처리, 사용자 권한 관리, 
 MyBatis 기반 DB 접근 구조를 구현한 프로젝트입니다.
 
 [기술 스택]
@@ -70,9 +70,10 @@ src
 • Axios Interceptor에서 Authorization Header 자동 주입
 
 2. AccessToken 만료 시
-1) server : AccessToken 만료 시 2001에러코드 반환
-2) client : axios interceptor에서 2001코드일 경우 api(/api/auth/reissue) 요청
-3) server : cookie의 refresh토큰과 db에 저장된 user의 refresh토큰값과 같을 경우 access/refresh token 재발급
+1) server : 2001 코드 반환(AccessToken 만료)
+2) client : axios interceptor에서 api(/api/auth/reissue) 요청
+3) server :
+• cookie refresh token == db저장 refresh token 검증 후 재발급
 이후는 로그인 시 절차와 같음.
 
 [핵심 설정 및 구현]
